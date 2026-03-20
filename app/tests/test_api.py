@@ -2,7 +2,6 @@
 API tests — these run in CI on every PR.
 Fast, no external dependencies, no database needed.
 """
-import pytest
 from fastapi.testclient import TestClient
 from app.main import app
 
@@ -70,4 +69,3 @@ def test_metrics_endpoint():
     response = client.get("/metrics")
     assert response.status_code == 200
     assert b"http_requests" in response.content or b"python_gc" in response.content
-    

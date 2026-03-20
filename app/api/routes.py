@@ -3,7 +3,6 @@ API route definitions.
 Each router is responsible for one domain — easy to test, easy to extend.
 """
 import time
-import uuid
 from datetime import datetime
 from fastapi import APIRouter, Depends, HTTPException, Header
 from typing import Optional
@@ -14,7 +13,6 @@ from app.models.schemas import (
     SearchResponse,
     DocumentResult,
     HealthResponse,
-    ErrorResponse,
 )
 
 router = APIRouter()
