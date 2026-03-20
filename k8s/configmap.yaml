@@ -1,0 +1,14 @@
+# ConfigMap holds non-sensitive configuration.
+# Sensitive values (API keys, passwords) go in Secrets — never in ConfigMaps.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: devops-demo-config
+  namespace: devops-demo
+data:
+  APP_ENV: "production"
+  DEBUG: "false"
+  HOST: "0.0.0.0"
+  PORT: "8000"
+  ENABLE_METRICS: "true"
+  APP_VERSION: "1.0.0"

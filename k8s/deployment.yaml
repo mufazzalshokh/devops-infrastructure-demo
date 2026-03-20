@@ -1,0 +1,69 @@
+# Deployment declares the desired state — K8s continuously reconciles reality to match it.
+# If a pod crashes, K8s restarts it automatically.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: devops-demo-api
+  namespace: devops-demo
+  labels:
+    app: devops-demo-api
+    version: "1.0.0"
+spec:
+  replicas: 2                    # 2 pods = zero-downtime during rolling updates
+  selector:
+    matchLabels:
+      app: devops-demo-api
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1                # Spin up 1 extra pod during update
+      maxUnavailable: 0          # Never take pods down before new ones are ready
+  template:
+    metadata:
+      labels:
+        app: devops-demo-api
+        version: "1.0.0"
+      annotations:
+        prometheus.io/scrape: "true"    # Tell Prometheus to scrape this pod
+        prometheus.io/port: "8000"
+        prometheus.io/path: "/metrics"
+    spec:
+      securityContext:
+        runAsNonRoot: true              # Enforce non-root at pod level
+        runAsUser: 1001
+        runAsGroup: 1001
+      containers:
+        - name: api
+          image: devops-infrastructure-demo-api:latest
+          imagePullPolicy: Never        # Use local minikube image, not DockerHub
+          ports:
+            - containerPort: 8000
+              name: http
+          envFrom:
+            - configMapRef:
+                name: devops-demo-config
+          env:
+            - name: API_KEY
+              value: "dev-secret-key-change-in-production"  # In prod: use Secret
+          resources:
+            requests:
+              memory: "128Mi"           # Minimum guaranteed resources
+              cpu: "100m"               # 100 millicores = 0.1 CPU
+            limits:
+              memory: "256Mi"           # Hard ceiling — OOMKilled if exceeded
+              cpu: "500m"               # 0.5 CPU max
+          livenessProbe:                # Restart pod if this fails
+            httpGet:
+              path: /health
+              port: 8000
+            initialDelaySeconds: 10
+            periodSeconds: 30
+            failureThreshold: 3
+          readinessProbe:               # Remove from load balancer if this fails
+            httpGet:
+              path: /ready
+              port: 8000
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            failureThreshold: 3
+      restartPolicy: Always

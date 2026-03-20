@@ -1,0 +1,25 @@
+# Ingress is the single entry point for external HTTP traffic.
+# Routes hostname/path → Service → Pods.
+# Requires ingress controller (minikube addons enable ingress).
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: devops-demo-ingress
+  namespace: devops-demo
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+    nginx.ingress.kubernetes.io/proxy-connect-timeout: "30"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "30"
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: devops-demo.local       # Add to /etc/hosts for local testing
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: devops-demo-api
+                port:
+                  number: 80

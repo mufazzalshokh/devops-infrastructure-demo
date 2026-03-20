@@ -1,0 +1,19 @@
+# Service gives pods a stable network identity.
+# Pods come and go (restarts, scaling) — Service IP stays constant.
+apiVersion: v1
+kind: Service
+metadata:
+  name: devops-demo-api
+  namespace: devops-demo
+  labels:
+    app: devops-demo-api
+spec:
+  selector:
+    app: devops-demo-api            # Routes to all pods with this label
+  ports:
+    - name: http
+      protocol: TCP
+      port: 80                      # Service port (what callers use)
+      targetPort: 8000              # Container port (what app listens on)
+  type: ClusterIP                   # Internal only — Ingress handles external traffic
+  

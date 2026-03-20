@@ -1,0 +1,28 @@
+# HorizontalPodAutoscaler automatically scales pod count based on load.
+# When CPU > 70%, add pods. When load drops, scale back down.
+# Requires metrics-server (minikube addons enable metrics-server).
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: devops-demo-hpa
+  namespace: devops-demo
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: devops-demo-api
+  minReplicas: 2                    # Always keep at least 2 pods running
+  maxReplicas: 10                   # Scale up to 10 under heavy load
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 70    # Scale when average CPU hits 70%
+    - type: Resource
+      resource:
+        name: memory
+        target:
+          type: Utilization
+          averageUtilization: 80    # Also scale on memory pressure

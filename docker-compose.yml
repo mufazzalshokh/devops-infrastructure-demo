@@ -1,0 +1,33 @@
+# Local development stack
+# Run with: docker compose up --build
+services:
+
+  api:
+    build:
+      context: ./app
+      dockerfile: Dockerfile
+    container_name: devops-demo-api
+    ports:
+      - "8000:8000"
+    environment:
+      APP_ENV: development
+      DEBUG: "false"
+      API_KEY: dev-secret-key-change-in-production
+    env_file:
+      - .env.example        # use .env in real deployment
+    volumes:
+      # Mount source for live reload in development
+      - ./app:/app
+    healthcheck:
+      test: ["CMD", "python", "-c", "import httpx; httpx.get('http://localhost:8000/health').raise_for_status()"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    restart: unless-stopped
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge

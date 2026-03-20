@@ -1,0 +1,9 @@
+# Namespaces isolate resources — best practice for every real deployment.
+# All our K8s objects live in 'devops-demo', not the default namespace.
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: devops-demo
+  labels:
+    app: devops-infrastructure-demo
+    managed-by: kubectl
