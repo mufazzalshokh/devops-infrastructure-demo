@@ -55,7 +55,7 @@ jobs:
       - name: Build image
         uses: docker/build-push-action@v5
         with:
-          context: .
+          context: ./app
           file: app/Dockerfile
           push: false          # CI only builds — CD handles pushing
           tags: devops-infrastructure-demo-api:${{ github.sha }}
@@ -99,10 +99,11 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Install kubectl
-        uses: azure/setup-kubectl@v3
-        with:
-          version: "v1.32.0"
+      - name: Install kubeval
+        run: |
+          wget https://github.com/instrumenta/kubeval/releases/latest/download/kubeval-linux-amd64.tar.gz
+          tar xf kubeval-linux-amd64.tar.gz
+          sudo mv kubeval /usr/local/bin/
 
       - name: Validate manifests
-        run: kubectl apply --dry-run=client --validate=false -f k8s/
+        run: kubeval --strict k8s/*.yaml --ignore-missing-schemas
