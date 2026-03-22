@@ -1,0 +1,23 @@
+# Prometheus configuration
+# Scrapes metrics from our FastAPI app every 15 seconds
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  external_labels:
+    monitor: devops-demo
+    environment: development
+
+scrape_configs:
+  # Prometheus scrapes itself
+  - job_name: prometheus
+    static_configs:
+      - targets: [localhost:9090]
+
+  # Our FastAPI app
+  - job_name: devops-demo-api
+    metrics_path: /metrics
+    static_configs:
+      - targets: [api:8000]
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: instance
