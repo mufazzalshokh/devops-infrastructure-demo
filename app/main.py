@@ -2,8 +2,8 @@
 Application entry point.
 Wires together config, middleware, routes, and instrumentation.
 """
-import time
 import logging
+import time
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, Request
@@ -11,8 +11,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from prometheus_fastapi_instrumentator import Instrumentator
 
-from app.core.config import get_settings
 from app.api.routes import router
+from app.core.config import get_settings
 
 # Logging — structured format for log aggregation (Loki, CloudWatch, etc.)
 logging.basicConfig(
@@ -76,7 +76,7 @@ app.include_router(router)
 
 @app.exception_handler(Exception)
 async def global_exception_handler(request: Request, exc: Exception):
-    logger.error(f"Unhandled exception: {exc}", exc_info=True)
+    logger.error(f"Unhandled exception: {exc}")
     return JSONResponse(
         status_code=500,
         content={"error": "Internal server error", "detail": str(exc) if settings.debug else None},
