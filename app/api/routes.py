@@ -3,16 +3,16 @@ API route definitions.
 Each router is responsible for one domain — easy to test, easy to extend.
 """
 import time
-from datetime import datetime
-from fastapi import APIRouter, Depends, HTTPException, Header
-from typing import Optional
+from datetime import UTC, datetime
 
-from app.core.config import get_settings, Settings
+from fastapi import APIRouter, Depends, Header, HTTPException
+
+from app.core.config import Settings, get_settings
 from app.models.schemas import (
     DocumentRequest,
-    SearchResponse,
     DocumentResult,
     HealthResponse,
+    SearchResponse,
 )
 
 router = APIRouter()
@@ -32,7 +32,7 @@ MOCK_DOCUMENTS = [
 
 
 def _verify_api_key(
-    x_api_key: Optional[str] = Header(default=None),
+    x_api_key: str | None = Header(default=None),
     settings: Settings = Depends(get_settings),
 ) -> None:
     """Simple API key auth — demonstrates security awareness without over-engineering."""
@@ -105,11 +105,15 @@ async def search_documents(request: DocumentRequest):
         results=[DocumentResult(**doc) for doc in top],
         total=len(top),
         processing_time_ms=processing_ms,
-        timestamp=datetime.utcnow(),
+        timestamp=datetime.now(UTC),
     )
 
 
-@router.get("/api/v1/documents", tags=["documents"])
-async def list_documents(dependencies=[Depends(_verify_api_key)]):
+@router.get(
+    "/api/v1/documents",
+    tags=["documents"],
+    dependencies=[Depends(_verify_api_key)],
+)
+async def list_documents():
     """Returns all documents in the store."""
     return {"documents": MOCK_DOCUMENTS, "total": len(MOCK_DOCUMENTS)}
