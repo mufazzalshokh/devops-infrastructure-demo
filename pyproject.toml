@@ -1,0 +1,6 @@
+[tool.ruff.lint]
+# B008 (function call in argument default) is a false positive for FastAPI's
+# Depends()/Header() pattern — this is the documented, idiomatic way to declare
+# dependencies in FastAPI, not the "mutable default" anti-pattern the rule
+# targets. See: https://docs.astral.sh/ruff/rules/function-call-in-default-argument/
+ignore = ["B008"]
