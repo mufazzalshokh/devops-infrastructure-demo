@@ -66,6 +66,22 @@ jobs:
     name: Terraform Validate
     runs-on: ubuntu-latest
 
+    # LocalStack simulates AWS — the provider in providers.tf points at
+    # localhost:4566, so LocalStack must be running as a service container
+    # for `terraform plan` to succeed in CI.
+    services:
+      localstack:
+        image: localstack/localstack:latest
+        ports:
+          - 4566:4566
+        env:
+          SERVICES: ec2,s3,iam
+        options: >-
+          --health-cmd "curl -f http://localhost:4566/_localstack/health || exit 1"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 10
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -74,6 +90,10 @@ jobs:
         uses: hashicorp/setup-terraform@v3
         with:
           terraform_version: "1.14.7"
+
+      - name: Wait for LocalStack
+        run: |
+          timeout 60 bash -c 'until curl -sf http://localhost:4566/_localstack/health; do sleep 2; done'
 
       - name: Terraform Init
         run: terraform init
