@@ -3,6 +3,7 @@ API tests — these run in CI on every PR.
 Fast, no external dependencies, no database needed.
 """
 from fastapi.testclient import TestClient
+
 from app.main import app
 
 client = TestClient(app)
