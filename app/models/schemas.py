@@ -2,9 +2,9 @@
 Pydantic schemas for request/response validation.
 Separating schemas from routes keeps each file focused on one responsibility.
 """
-from pydantic import BaseModel, Field
-from typing import Optional
 from datetime import datetime
+
+from pydantic import BaseModel, Field
 
 
 class DocumentRequest(BaseModel):
@@ -37,5 +37,5 @@ class HealthResponse(BaseModel):
 
 class ErrorResponse(BaseModel):
     error: str
-    detail: Optional[str] = None
+    detail: str | None = None
     timestamp: datetime
