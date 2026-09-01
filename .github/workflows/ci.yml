@@ -66,22 +66,6 @@ jobs:
     name: Terraform Validate
     runs-on: ubuntu-latest
 
-    # LocalStack simulates AWS — the provider in providers.tf points at
-    # localhost:4566, so LocalStack must be running as a service container
-    # for `terraform plan` to succeed in CI.
-    services:
-      localstack:
-        image: localstack/localstack:latest
-        ports:
-          - 4566:4566
-        env:
-          SERVICES: ec2,s3,iam
-        options: >-
-          --health-cmd "curl -f http://localhost:4566/_localstack/health || exit 1"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 10
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -91,9 +75,20 @@ jobs:
         with:
           terraform_version: "1.14.7"
 
-      - name: Wait for LocalStack
+      # Started manually via `docker run` instead of GitHub's `services:` block.
+      # The services: health-check gate runs curl INSIDE the container before
+      # the job continues, which was failing to initialize reliably. Starting
+      # it directly and polling from the runner side is more predictable.
+      - name: Start LocalStack
         run: |
-          timeout 60 bash -c 'until curl -sf http://localhost:4566/_localstack/health; do sleep 2; done'
+          docker run -d --name localstack \
+            -p 4566:4566 \
+            -e SERVICES=ec2,s3,iam \
+            localstack/localstack:3.0
+
+      - name: Wait for LocalStack to be ready
+        run: |
+          timeout 90 bash -c 'until curl -sf http://localhost:4566/_localstack/health; do sleep 3; done'
 
       - name: Terraform Init
         run: terraform init
@@ -110,6 +105,10 @@ jobs:
           AWS_DEFAULT_REGION: eu-west-1
           AWS_ACCESS_KEY_ID: mock_access_key
           AWS_SECRET_ACCESS_KEY: mock_secret_key
+
+      - name: Stop LocalStack
+        if: always()
+        run: docker stop localstack
 
   k8s-validate:
     name: Validate K8s Manifests
